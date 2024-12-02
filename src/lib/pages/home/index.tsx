@@ -1,10 +1,14 @@
+'use client';
 import { Flex } from '@chakra-ui/react';
 
-import { CTASection } from './components/cta-section';
-import { SomeImage } from './components/some-image';
-import { SomeText } from './components/some-text';
-
+import { Button } from '@/components/ui/button';
+import { useRouter } from 'next/navigation'; // useRouterフックをインポート
 export const Home = () => {
+  const router = useRouter(); // useRouterを初期化
+
+  const onClickMove = () => {
+    router.push('/packing-display'); // 遷移先を指定
+  };
   return (
     <Flex
       direction="column"
@@ -15,9 +19,7 @@ export const Home = () => {
       mb={8}
       w="full"
     >
-      <SomeText />
-      <SomeImage />
-      <CTASection />
+      <Button onClick={onClickMove}>パッキング表示ページへ</Button>
     </Flex>
   );
 };
