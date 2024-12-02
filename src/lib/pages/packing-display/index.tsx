@@ -1,6 +1,6 @@
 'use client';
 import { Flex } from '@chakra-ui/react';
-
+import { CanvasComponent } from './components/CanvasComponent';
 export const PackingDisplay = () => {
   return (
     <Flex
@@ -11,6 +11,8 @@ export const PackingDisplay = () => {
       gap={4}
       mb={8}
       w="full"
-    ></Flex>
+    >
+      <CanvasComponent />
+    </Flex>
   );
 };

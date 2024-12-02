@@ -8,6 +8,10 @@ const nextConfig: NextConfig = {
   eslint: {
     dirs: ['src'],
   },
+  transpilePackages: ['three'],
 };
-
+module.exports = {
+  // 自動的にSSRを無効化する設定はないが、必要に応じてデフォルトページやコンポーネントでSSG/SSRを避ける
+  reactStrictMode: true,
+}
 export default nextConfig;
