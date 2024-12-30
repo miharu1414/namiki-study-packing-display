@@ -12,12 +12,12 @@ type Props = {
 export const ContainerComponent: React.FC<Props> = ({ L, W, H }) => {
   return (
     <mesh>
-      {/* コンテナの立方体を作成 */}
-      <boxGeometry args={[L, W, H]} />
+      {/* コンテナの直方体を作成 */}
+      <boxGeometry args={[L, W, H]} /> {/* x: 長さ, y: 高さ, z: 幅 */}
       <meshStandardMaterial
         color="lightblue"
-        transparent={true} // 透過を有効にする
-        opacity={0.3} // 透過の度合いを設定（0: 完全に透明, 1: 完全に不透明）
+        transparent={true}
+        opacity={0.3}
       />
     </mesh>
   );

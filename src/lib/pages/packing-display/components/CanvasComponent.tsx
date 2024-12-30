@@ -7,55 +7,49 @@ import { ContainerComponent } from './ContainerComponent';
 
 export const CanvasComponent: React.FC = () => {
   const [isClient, setIsClient] = useState(false);
+  const [containerSize, setContainerSize] = useState<{
+    L: number;
+    W: number;
+    H: number;
+  } | null>(null);
+  const [boxes, setBoxes] = useState<
+    {
+      l: number;
+      w: number;
+      h: number;
+      position: { x: number; y: number; z: number };
+    }[]
+  >([]);
+  const [currentBoxCount, setCurrentBoxCount] = useState(0);
 
   // クライアントサイドでのみレンダリングするためのフラグを設定
   useEffect(() => {
     setIsClient(true);
   }, []);
 
-  const [boxPositions, setBoxPositions] = useState<
-    [x: number, y: number, z: number][]
-  >([]);
-  const [currentBoxCount, setCurrentBoxCount] = useState(0);
+  // JSON ファイルのアップロード時にデータを読み取る
+  const handleFileUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
 
-  // ボックスを配置する関数
-  const generateBoxPositions = (L: number, W: number, H: number) => {
-    const positions: [number, number, number][] = [];
-    const boxSize = 1; // ボックスのサイズ
-    const offsetX = -(L * boxSize) / 2 + 0.5; // コンテナの中心を基準にXオフセット
-    const offsetY = -(W * boxSize) / 2 + 0.5; // コンテナの中心を基準にYオフセット
-    const offsetZ = -(H * boxSize) / 2 + 0.5; // コンテナの中心を基準にZオフセット
-
-    for (let x = 0; x < L; x++) {
-      for (let y = 0; y < W; y++) {
-        for (let z = 0; z < H; z++) {
-          positions.push([
-            x * boxSize + offsetX,
-            y * boxSize + offsetY,
-            z * boxSize + offsetZ,
-          ]);
-        }
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      try {
+        const json = JSON.parse(e.target?.result as string);
+        setContainerSize(json.container);
+        setBoxes(json.boxes);
+        setCurrentBoxCount(0); // 初期化
+      } catch (error) {
+        console.error('JSON parsing error:', error);
+        alert('有効な JSON ファイルをアップロードしてください');
       }
-    }
-    return positions;
+    };
+    reader.readAsText(file);
   };
-
-  // コンテナのサイズ
-  const containerL = 10;
-  const containerW = 5;
-  const containerH = 5;
-
-  // ボックスの全体位置を計算
-  const allBoxPositions = generateBoxPositions(
-    containerL,
-    containerW,
-    containerH
-  );
 
   // ボタンを押したときの処理
   const handleNextBox = () => {
-    if (currentBoxCount < allBoxPositions.length) {
-      setBoxPositions((prev) => [...prev, allBoxPositions[currentBoxCount]]);
+    if (currentBoxCount < boxes.length) {
       setCurrentBoxCount((prev) => prev + 1);
     }
   };
@@ -68,32 +62,59 @@ export const CanvasComponent: React.FC = () => {
     <div
       style={{ width: '100vw', height: '100vh', backgroundColor: 'whitesmoke' }}
     >
+      {/* ファイルアップロード */}
+      <div
+        style={{ position: 'absolute', top: '10px', left: '10px', zIndex: 10 }}
+      >
+        <input
+          type="file"
+          accept="application/json"
+          onChange={handleFileUpload}
+          style={{ marginBottom: '10px' }}
+        />
+      </div>
+
       <Canvas camera={{ position: [15, 15, 15], fov: 50 }}>
         <ambientLight />
         <pointLight position={[10, 10, 10]} />
+
         {/* コンテナを描画 */}
-        <ContainerComponent
-          L={containerL + 1}
-          W={containerW + 1}
-          H={containerH + 1}
-        />
-        {/* ボックスをコンテナ内に配置 */}
-        {boxPositions.map((position, index) => (
+        {containerSize && (
+          <ContainerComponent
+            L={containerSize.L / 100} // x方向の幅
+            W={containerSize.H / 100} // y方向の高さ
+            H={containerSize.W / 100} // z方向の奥行き
+          />
+        )}
+
+        {/* ボックスを描画 */}
+        {boxes.slice(0, currentBoxCount).map((box, index) => (
           <BoxComponent
             key={index}
-            position={position}
-            isHighlighted={index === currentBoxCount - 1} // 直近のBoxを判定
+            position={[
+              box.position.x / 100 - containerSize!.L / 200 + box.l / 200, // x座標調整
+              box.position.z / 100 - containerSize!.H / 200 + box.h / 200, // y座標調整
+              box.position.y / 100 - containerSize!.W / 200 + box.w / 200, // z座標調整
+            ]}
+            dimensions={[
+              box.l / 100, // x方向の長さ
+              box.h / 100, // y方向の高さ
+              box.w / 100, // z方向の幅
+            ]}
+            isHighlighted={index === currentBoxCount - 1}
           />
         ))}
-        {/* OrbitControlsを追加して、視点操作を可能にする */}
         <OrbitControls />
       </Canvas>
-      {/* 進むボタン */}
-      <div style={{ position: 'absolute', top: '10px', left: '10px' }}>
+
+      {/* ボタン */}
+      <div
+        style={{ position: 'absolute', top: '50px', left: '10px', zIndex: 10 }}
+      >
         <button
           onClick={handleNextBox}
           style={{ padding: '10px', fontSize: '16px', cursor: 'pointer' }}
-          disabled={currentBoxCount >= allBoxPositions.length} // 全ボックスが配置済みの場合ボタンを無効化
+          disabled={currentBoxCount >= boxes.length} // 全ボックスが配置済みの場合ボタンを無効化
         >
           進む
         </button>
