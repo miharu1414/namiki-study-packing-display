@@ -7,7 +7,7 @@ import { test, expect } from '@playwright/test';
 
 /** replace with env vars if needed */
 const LOCAL_HOST_URL = 'http://localhost:3000/';
-const APP_NAME = 'nextarter-chakra';
+const APP_NAME = 'namiki-packing-display';
 const USE_THIS_TEMPLATE_TEXT = 'Use This Template';
 const OPEN_IN_GITHUB_TEXT = 'Open in Github';
 const REPO_URL = `https://github.com/agustinusnathaniel/${APP_NAME}`;
