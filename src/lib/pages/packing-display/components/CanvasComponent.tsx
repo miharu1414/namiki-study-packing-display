@@ -58,6 +58,9 @@ export const CanvasComponent: React.FC = () => {
     return null; // サーバーサイドではレンダリングしない
   }
 
+  const currentBox = boxes[currentBoxCount]; // 現在のボックス情報
+  const nextBox = boxes[currentBoxCount + 1]; // 次のボックス情報
+
   return (
     <div
       style={{ width: '100vw', height: '100vh', backgroundColor: 'whitesmoke' }}
@@ -81,9 +84,9 @@ export const CanvasComponent: React.FC = () => {
         {/* コンテナを描画 */}
         {containerSize && (
           <ContainerComponent
-            L={containerSize.L / 100} // x方向の幅
-            W={containerSize.H / 100} // y方向の高さ
-            H={containerSize.W / 100} // z方向の奥行き
+            L={containerSize.L / 100 + 2} // x方向の幅
+            W={containerSize.H / 100 + 2} // y方向の高さ
+            H={containerSize.W / 100 + 2} // z方向の奥行き
           />
         )}
 
@@ -107,14 +110,128 @@ export const CanvasComponent: React.FC = () => {
         <OrbitControls />
       </Canvas>
 
+      {/* 現在のボックス情報と次のボックス情報 */}
+      <div
+        style={{
+          position: 'absolute',
+          top: '120px',
+          left: '10px',
+          width: '250px',
+          height: '200px',
+          backgroundColor: '#ecf0f1',
+          padding: '10px',
+          borderRadius: '8px',
+          boxShadow: '0 4px 8px rgba(0, 0, 0, 0.2)',
+          zIndex: 10,
+        }}
+      >
+        <h3 style={{ color: '#2c3e50' }}>現在の荷物</h3>
+        {currentBox ? (
+          <div>
+            <p style={{ color: '#2c3e50' }}>
+              <strong>サイズ:</strong> {currentBox.l} x {currentBox.w} x{' '}
+              {currentBox.h}
+            </p>
+            <p style={{ color: '#2c3e50' }}>
+              <strong>位置:</strong> x: {currentBox.position.x}, y:{' '}
+              {currentBox.position.y}, z: {currentBox.position.z}
+            </p>
+          </div>
+        ) : (
+          <p style={{ color: '#2c3e50' }}>現在の荷物はありません。</p>
+        )}
+
+        <br />
+        <h3 style={{ color: '#2c3e50' }}>次の荷物</h3>
+        {nextBox ? (
+          <div>
+            <p style={{ color: '#2c3e50' }}>
+              <strong>サイズ:</strong> {nextBox.l} x {nextBox.w} x {nextBox.h}
+            </p>
+            <p style={{ color: '#2c3e50' }}>
+              <strong>位置:</strong> x: {nextBox.position.x}, y:{' '}
+              {nextBox.position.y}, z: {nextBox.position.z}
+            </p>
+          </div>
+        ) : (
+          <p style={{ color: '#2c3e50' }}>次の荷物はありません。</p>
+        )}
+      </div>
+
+      {/* 次のボックスの形状を確認するためのプレビュー用Canvas */}
+      <div
+        style={{
+          position: 'absolute',
+          top: '400px', // 現在のボックス情報の下に配置
+          left: '10px',
+          width: '250px',
+          height: '250px', // 高さを増加
+          backgroundColor: '#ecf0f1',
+          padding: '10px',
+          borderRadius: '8px',
+          boxShadow: '0 4px 8px rgba(0, 0, 0, 0.2)',
+          zIndex: 10,
+        }}
+      >
+        <h3 style={{ color: '#2c3e50' }}>次の荷物のプレビュー</h3>
+        {nextBox && containerSize ? (
+          <Canvas camera={{ position: [5, 5, 10], fov: 50 }}>
+            {' '}
+            {/* 斜め上から見るようにカメラ位置を調整 */}
+            <ambientLight />
+            <pointLight position={[10, 10, 10]} />
+            {/* Boxの位置は固定され、カメラが斜め上から見る */}
+            <BoxComponent
+              position={[
+                0, // x座標を固定
+                0, // y座標を固定
+                0, // z座標を固定
+              ]}
+              dimensions={[
+                nextBox.l / 100, // x方向の長さ
+                nextBox.h / 100, // y方向の高さ
+                nextBox.w / 100, // z方向の幅
+              ]}
+              isHighlighted={true} // 仮のプレビューなのでハイライト
+            />
+            <OrbitControls />
+          </Canvas>
+        ) : (
+          <>
+            <br />
+            <p style={{ color: '#2c3e50' }}>次の荷物はありません。</p>
+          </>
+        )}
+      </div>
       {/* ボタン */}
       <div
-        style={{ position: 'absolute', top: '50px', left: '10px', zIndex: 10 }}
+        style={{
+          position: 'absolute',
+          top: '70px',
+          left: '10px',
+          zIndex: 10,
+        }}
       >
         <button
           onClick={handleNextBox}
-          style={{ padding: '10px', fontSize: '16px', cursor: 'pointer' }}
-          disabled={currentBoxCount >= boxes.length} // 全ボックスが配置済みの場合ボタンを無効化
+          style={{
+            padding: '12px 24px',
+            fontSize: '16px',
+            cursor: 'pointer',
+            borderRadius: '8px',
+            border: 'none',
+            backgroundColor: '#3498db',
+            color: '#fff',
+            boxShadow: '0 4px 8px rgba(0, 0, 0, 0.2)',
+            transition: 'background-color 0.3s ease',
+          }}
+          onMouseOver={(e) =>
+            (e.currentTarget.style.backgroundColor = '#2980b9')
+          }
+          onMouseOut={(e) =>
+            (e.currentTarget.style.backgroundColor = '#3498db')
+          }
+          disabled={currentBoxCount >= boxes.length}
         >
           進む
         </button>
