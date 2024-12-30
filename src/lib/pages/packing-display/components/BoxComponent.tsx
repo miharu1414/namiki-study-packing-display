@@ -6,29 +6,23 @@ import { Mesh } from 'three'; // EdgesGeometryやLineBasicMaterialをインポ�
 type Props = {
   position: [x: number, y: number, z: number];
   dimensions: [xLength: number, yWidth: number, zHeight: number];
-  isHighlighted?: boolean;
+  isHighlighted?: boolean; // 最新のボックスを特定
+  color?: string; // 色をプロパティとして渡す
 };
 
 export const BoxComponent: React.FC<Props> = (props) => {
-  const { position, dimensions, isHighlighted = false } = props;
+  const { position, dimensions, isHighlighted = false, color } = props;
   const mesh = useRef<Mesh | null>(null);
   const [hovered, setHover] = useState(false);
   const [active, setActive] = useState(false);
 
-  const color = isHighlighted
+  // `color`プロパティが渡されていなければ、デフォルトの色を決定
+  const boxColor = isHighlighted
     ? '#ff6347' // 最新ボックス: トマトレッド
-    : hovered
-      ? 'hotpink' // ホバー時: ホットピンク
-      : '#98fb98'; // 他のボックス: 薄い緑
+    : color || (hovered ? 'hotpink' : '#98fb98'); // 色が指定されていなければホバー時やデフォルト色
 
   // EdgesGeometryを使ってエッジを取得
   const edges = new THREE.EdgesGeometry(new THREE.BoxGeometry(...dimensions));
-
-  // // 線のスタイルを定義
-  // const lineMaterial = new THREE.LineBasicMaterial({
-  //   color: '#000000', // エッジの色
-  //   linewidth: 2, // 線の太さ（WebGL2では無効かもしれませんが、書いておきます）
-  // });
 
   return (
     <mesh
@@ -40,11 +34,10 @@ export const BoxComponent: React.FC<Props> = (props) => {
       onPointerOut={() => setHover(false)}
     >
       <boxGeometry args={dimensions} />
-      <meshStandardMaterial color={color} />
+      <meshStandardMaterial color={boxColor} />
 
       {/* エッジの描画 */}
       <lineSegments geometry={edges}>
-        {/* ここで lineMaterial を適用 */}
         <lineBasicMaterial color="#000000" linewidth={2} />
       </lineSegments>
     </mesh>

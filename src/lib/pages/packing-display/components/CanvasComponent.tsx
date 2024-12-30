@@ -22,6 +22,24 @@ export const CanvasComponent: React.FC = () => {
   >([]);
   const [currentBoxCount, setCurrentBoxCount] = useState(0);
 
+  // 形状のインデックスに基づく色割り当て
+  const [shapeColors, setShapeColors] = useState<Map<string, string>>(
+    new Map()
+  );
+
+  const shapeColorsList = [
+    '#ff6347',
+    '#ff1493',
+    '#ff8c00',
+    '#ffff00',
+    '#98fb98',
+    '#00bfff',
+    '#dda0dd',
+    '#adff2f',
+    '#f0e68c',
+    '#f08080', // 10種類の色
+  ];
+
   // クライアントサイドでのみレンダリングするためのフラグを設定
   useEffect(() => {
     setIsClient(true);
@@ -60,6 +78,19 @@ export const CanvasComponent: React.FC = () => {
 
   const currentBox = boxes[currentBoxCount]; // 現在のボックス情報
   const nextBox = boxes[currentBoxCount + 1]; // 次のボックス情報
+
+  // 同じ形状のボックスに色を付けるための処理
+  const getShapeColor = (box: { l: number; w: number; h: number }) => {
+    const shapeKey = [box.l, box.w, box.h].sort().join('-');
+    if (!shapeColors.has(shapeKey)) {
+      // 新しい形状の場合、色を割り当て
+      const colorIndex = shapeColors.size % shapeColorsList.length; // 10種類の色の循環
+      setShapeColors(
+        (prev) => new Map(prev.set(shapeKey, shapeColorsList[colorIndex]))
+      );
+    }
+    return shapeColors.get(shapeKey) || '#98fb98'; // 既存の色があればそれを返す
+  };
 
   return (
     <div
@@ -104,7 +135,8 @@ export const CanvasComponent: React.FC = () => {
               box.h / 100, // y方向の高さ
               box.w / 100, // z方向の幅
             ]}
-            isHighlighted={index === currentBoxCount - 1}
+            isHighlighted={index === currentBoxCount} // 最新のボックスだけハイライト
+            color={index === currentBoxCount ? '#ff6347' : getShapeColor(box)} // 最新のボックスにはオレンジ色、それ以外は形状に基づく色
           />
         ))}
         <OrbitControls />
@@ -176,23 +208,13 @@ export const CanvasComponent: React.FC = () => {
         <h3 style={{ color: '#2c3e50' }}>次の荷物のプレビュー</h3>
         {nextBox && containerSize ? (
           <Canvas camera={{ position: [5, 5, 10], fov: 50 }}>
-            {' '}
-            {/* 斜め上から見るようにカメラ位置を調整 */}
             <ambientLight />
             <pointLight position={[10, 10, 10]} />
-            {/* Boxの位置は固定され、カメラが斜め上から見る */}
             <BoxComponent
-              position={[
-                0, // x座標を固定
-                0, // y座標を固定
-                0, // z座標を固定
-              ]}
-              dimensions={[
-                nextBox.l / 100, // x方向の長さ
-                nextBox.h / 100, // y方向の高さ
-                nextBox.w / 100, // z方向の幅
-              ]}
+              position={[0, 0, 0]}
+              dimensions={[nextBox.l / 100, nextBox.h / 100, nextBox.w / 100]}
               isHighlighted={true} // 仮のプレビューなのでハイライト
+              color="#ff6347" // 最新の荷物として色を設定
             />
             <OrbitControls />
           </Canvas>
@@ -203,6 +225,7 @@ export const CanvasComponent: React.FC = () => {
           </>
         )}
       </div>
+
       {/* ボタン */}
       <div
         style={{
@@ -225,15 +248,8 @@ export const CanvasComponent: React.FC = () => {
             boxShadow: '0 4px 8px rgba(0, 0, 0, 0.2)',
             transition: 'background-color 0.3s ease',
           }}
-          onMouseOver={(e) =>
-            (e.currentTarget.style.backgroundColor = '#2980b9')
-          }
-          onMouseOut={(e) =>
-            (e.currentTarget.style.backgroundColor = '#3498db')
-          }
-          disabled={currentBoxCount >= boxes.length}
         >
-          進む
+          次のボックス
         </button>
       </div>
     </div>
