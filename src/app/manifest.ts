@@ -1,7 +1,7 @@
 import type { MetadataRoute } from 'next';
 
 const manifest = (): MetadataRoute.Manifest => ({
-  short_name: 'nextarter-chakra',
+  short_name: 'namiki-packing-display',
   name: 'Next.js App Template',
   lang: 'en',
   start_url: '/',
