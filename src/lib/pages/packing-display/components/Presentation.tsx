@@ -1,6 +1,13 @@
 'use client';
+
 import { Flex } from '@chakra-ui/react';
-import { CanvasComponent } from './CanvasComponent';
+import dynamic from 'next/dynamic';
+
+// CanvasComponentをdynamicインポートする
+const CanvasComponent = dynamic(() => import('./CanvasComponent'), {
+  ssr: false, // サーバーサイドレンダリングを無効化
+});
+
 export const PresentationPacking = () => {
   return (
     <Flex
