@@ -4,8 +4,10 @@ import { Canvas } from '@react-three/fiber';
 import { OrbitControls } from '@react-three/drei';
 import { BoxComponent } from './BoxComponent';
 import { ContainerComponent } from './ContainerComponent';
+import { sampleJson } from './sampleJson'; // オ
+import { Button } from '@/components/ui/button';
 
-export const CanvasComponent: React.FC = () => {
+const CanvasComponent: React.FC = () => {
   const [isClient, setIsClient] = useState(false);
   const [containerSize, setContainerSize] = useState<{
     L: number;
@@ -45,6 +47,23 @@ export const CanvasComponent: React.FC = () => {
     setIsClient(true);
   }, []);
 
+  const downloadJson = () => {
+    // Blobを作成
+    const blob = new Blob([JSON.stringify(sampleJson, null, 2)], {
+      type: 'application/json',
+    });
+
+    // ダウンロード用リンクを作成
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'sample.json'; // ダウンロードされるファイル名
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url); // メモリを解放
+  };
+
   // JSON ファイルのアップロード時にデータを読み取る
   const handleFileUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
@@ -65,11 +84,30 @@ export const CanvasComponent: React.FC = () => {
     reader.readAsText(file);
   };
 
-  // ボタンを押したときの処理
+  // 次のボックス
   const handleNextBox = () => {
-    if (currentBoxCount < boxes.length) {
+    if (currentBoxCount < boxes.length - 1) {
       setCurrentBoxCount((prev) => prev + 1);
     }
+  };
+
+  // 前のボックス
+  const handlePrevBox = () => {
+    if (currentBoxCount > 0) {
+      setCurrentBoxCount((prev) => prev - 1);
+    }
+  };
+
+  // 容積率計算
+  const calculateOccupancyRate = () => {
+    if (!containerSize || boxes.length === 0) return 0;
+
+    const containerVolume = containerSize.L * containerSize.W * containerSize.H; // コンテナの容積
+    const totalBoxVolume = boxes
+      .slice(0, currentBoxCount + 1) // 現在のボックスまでの全てのボックスの体積を合計
+      .reduce((acc, box) => acc + box.l * box.w * box.h, 0);
+
+    return (totalBoxVolume / containerVolume) * 100; // 容積率
   };
 
   if (!isClient) {
@@ -94,8 +132,33 @@ export const CanvasComponent: React.FC = () => {
 
   return (
     <div
-      style={{ width: '100vw', height: '100vh', backgroundColor: 'whitesmoke' }}
+      style={{ width: '100vw', height: '90vh', backgroundColor: 'whitesmoke' }}
     >
+      {/* JSON ダウンロードリンク */}
+      <div
+        style={{
+          position: 'absolute',
+          top: '10px',
+          right: '10px',
+          zIndex: 10,
+        }}
+      >
+        <Button
+          onClick={() => downloadJson()}
+          style={{
+            padding: '10px 20px',
+            fontSize: '16px',
+            textDecoration: 'none',
+            backgroundColor: '#2ecc71',
+            color: '#fff',
+            borderRadius: '8px',
+            boxShadow: '0 4px 8px rgba(0, 0, 0, 0.2)',
+          }}
+        >
+          Download-sample
+        </Button>
+      </div>
+
       {/* ファイルアップロード */}
       <div
         style={{ position: 'absolute', top: '10px', left: '10px', zIndex: 10 }}
@@ -146,14 +209,14 @@ export const CanvasComponent: React.FC = () => {
       <div
         style={{
           position: 'absolute',
-          top: '120px',
+          top: '130px',
           left: '10px',
           width: '250px',
-          height: '200px',
+          height: '260px',
           backgroundColor: '#ecf0f1',
           padding: '10px',
           borderRadius: '8px',
-          boxShadow: '0 4px 8px rgba(0, 0, 0, 0.2)',
+          boxShadow: '0 2px 4px rgba(0, 0, 0, 0.2)',
           zIndex: 10,
         }}
       >
@@ -168,12 +231,12 @@ export const CanvasComponent: React.FC = () => {
               <strong>位置:</strong> x: {currentBox.position.x}, y:{' '}
               {currentBox.position.y}, z: {currentBox.position.z}
             </p>
+            <br />
           </div>
         ) : (
           <p style={{ color: '#2c3e50' }}>現在の荷物はありません。</p>
         )}
 
-        <br />
         <h3 style={{ color: '#2c3e50' }}>次の荷物</h3>
         {nextBox ? (
           <div>
@@ -188,6 +251,12 @@ export const CanvasComponent: React.FC = () => {
         ) : (
           <p style={{ color: '#2c3e50' }}>次の荷物はありません。</p>
         )}
+        <br />
+        {/* 容積率の表示 */}
+        <strong style={{ color: '#2c3e50' }}>現在の容積率</strong>
+        <p style={{ color: '#2c3e50' }}>
+          {calculateOccupancyRate().toFixed(2)} %
+        </p>
       </div>
 
       {/* 次のボックスの形状を確認するためのプレビュー用Canvas */}
@@ -201,7 +270,7 @@ export const CanvasComponent: React.FC = () => {
           backgroundColor: '#ecf0f1',
           padding: '10px',
           borderRadius: '8px',
-          boxShadow: '0 4px 8px rgba(0, 0, 0, 0.2)',
+          boxShadow: '0 2px 4px rgba(0, 0, 0, 0.2)',
           zIndex: 10,
         }}
       >
@@ -235,6 +304,26 @@ export const CanvasComponent: React.FC = () => {
           zIndex: 10,
         }}
       >
+        {/* 戻るボタン */}
+        <button
+          onClick={handlePrevBox}
+          style={{
+            padding: '12px 24px',
+            fontSize: '16px',
+            cursor: 'pointer',
+            borderRadius: '8px',
+            border: 'none',
+            backgroundColor: '#3498db',
+            color: '#fff',
+            boxShadow: '0 2px 4px rgba(0, 0, 0, 0.2)',
+            marginRight: '10px', // ボタン間にスペースを追加
+            transition: 'background-color 0.3s ease',
+          }}
+        >
+          戻る
+        </button>
+
+        {/* 次のボックスボタン */}
         <button
           onClick={handleNextBox}
           style={{
@@ -245,7 +334,7 @@ export const CanvasComponent: React.FC = () => {
             border: 'none',
             backgroundColor: '#3498db',
             color: '#fff',
-            boxShadow: '0 4px 8px rgba(0, 0, 0, 0.2)',
+            boxShadow: '0 2px 4px rgba(0, 0, 0, 0.2)',
             transition: 'background-color 0.3s ease',
           }}
         >
@@ -255,3 +344,5 @@ export const CanvasComponent: React.FC = () => {
     </div>
   );
 };
+
+export default CanvasComponent;
