@@ -24,7 +24,8 @@ export const metadata: Metadata = {
   openGraph: {
     url: 'https://namiki-packing-display.sznm.dev',
     title: 'namiki-packing-display',
-    description: 'Next.js + chakra-ui + TypeScript template',
+    // description: 'Next.js + chakra-ui + TypeScript template',
+    description: '単一コンテナ積み付け問題 - 作業支援 (Namiki)',
     images: {
       url: 'https://og-image.sznm.dev/**namiki-packing-display**.sznm.dev.png?theme=dark&md=1&fontSize=125px&images=https%3A%2F%2Fsznm.dev%2Favataaars.svg&widths=250',
       alt: 'namiki-packing-display.sznm.dev og-image',
